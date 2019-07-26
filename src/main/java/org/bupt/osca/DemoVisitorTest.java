@@ -16,7 +16,7 @@ public class DemoVisitorTest {
 	
 	public DemoVisitorTest(Neo4jCreate con) throws IOException, SQLException {
 		ASTParser astParser = ASTParser.newParser(AST.JLS8);
-		String temp=readFileToString(".\\src\\ClassDemo.java");
+		String temp=readFileToString(".\\src\\main\\java\\org\\bupt\\osca\\ClassDemo.java");
         astParser.setSource(temp.toCharArray());
         astParser.setKind(ASTParser.K_COMPILATION_UNIT);
         Map options = JavaCore.getOptions();
