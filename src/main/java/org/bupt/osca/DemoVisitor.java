@@ -1,4 +1,5 @@
-package com.bupt.Neo4JTest;
+package org.bupt.osca;
+
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -61,7 +62,6 @@ public class DemoVisitor extends ASTVisitor {
 	}
 
 
-	// 这里开始是想previsit调用的方法
 	public String addNode(ASTNode node) throws SQLException {
 		String[] temp = node.getClass().toString().replaceAll("\\s*", "").split("\\.");
 		String nodename = temp[temp.length - 1] + String.valueOf(node.getStartPosition())

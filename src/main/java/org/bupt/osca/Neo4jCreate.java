@@ -1,4 +1,4 @@
-package com.bupt.Neo4JTest;
+package org.bupt.osca;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -60,7 +60,7 @@ public class Neo4jCreate {
 	{
 		System.out.println(nodequery.toString());
 		System.out.println(relaquery.toString());
-		//写进数据库
+		//neo4j data push
 		Statement stmt = connect.createStatement();
 		System.out.println(stmt.execute(nodequery.toString()+relaquery.toString()));
 	}

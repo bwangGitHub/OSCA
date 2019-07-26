@@ -1,4 +1,5 @@
-package com.bupt.Neo4JTest;
+package org.bupt.osca;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;

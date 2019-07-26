@@ -1,4 +1,4 @@
-package com.bupt.Neo4JTest;
+package org.bupt.osca;
 public class ClassDemo {
  
        private  String text = "Hello World!";
