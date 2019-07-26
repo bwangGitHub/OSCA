@@ -1,113 +1,86 @@
-package org.bupt.osca;
+package com.bupt.Neo4JTest;
 
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTVisitor;
+import org.eclipse.jdt.core.dom.AnnotationTypeDeclaration;
+import org.eclipse.jdt.core.dom.AnnotationTypeMemberDeclaration;
+import org.eclipse.jdt.core.dom.AnonymousClassDeclaration;
+import org.eclipse.jdt.core.dom.ArrayAccess;
+import org.eclipse.jdt.core.dom.ArrayCreation;
 import org.eclipse.jdt.core.dom.Assignment;
 import org.eclipse.jdt.core.dom.Block;
+import org.eclipse.jdt.core.dom.CharacterLiteral;
 import org.eclipse.jdt.core.dom.ExpressionStatement;
 import org.eclipse.jdt.core.dom.FieldDeclaration;
 import org.eclipse.jdt.core.dom.IVariableBinding;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
+import org.eclipse.jdt.core.dom.Modifier;
+import org.eclipse.jdt.core.dom.PackageDeclaration;
+import org.eclipse.jdt.core.dom.QualifiedName;
 import org.eclipse.jdt.core.dom.SimpleName;
+import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.Type;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
+import org.eclipse.jdt.core.dom.WhileStatement;
 //import org.eclipse.jdt.internal.compiler.ast.Block;
 //import org.eclipse.jdt.internal.compiler.ast.Statement;
-import org.eclipse.jdt.core.dom.Assignment;
 import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.eclipse.jdt.core.dom.ExpressionStatement;
-import org.eclipse.jdt.core.dom.MethodDeclaration;
-import org.eclipse.jdt.core.dom.Type;
-import org.eclipse.jdt.internal.compiler.ast.Expression;
-import org.eclipse.jdt.internal.compiler.ast.Statement;
- 
+import org.eclipse.jdt.core.dom.ContinueStatement;
+import org.eclipse.jdt.core.dom.CreationReference;
+
 public class DemoVisitor extends ASTVisitor {
+	private Neo4jCreate con;
+
+	public DemoVisitor(Neo4jCreate con) {
+		this.con = con;
+	}
 	
-//	@Override
-//	public void preVisit(ASTNode node) {
-//		System.out.println("---");
-//		System.out.println("aaa: "+node);
-//		System.out.println("bbb: "+node.getParent());
-//		System.out.println("---");
-//	}
-	
-	@Override
-	public boolean visit(FieldDeclaration node) {
-		
-		System.out.println("--------");
-		
-		for (Object obj: node.fragments()) {
-			VariableDeclarationFragment v = (VariableDeclarationFragment)obj;
-			System.out.println("Parent: "+v.getParent());
-			System.out.println("Field:\t" + v.getName());
-//			System.out.println("Field fragment:"+v.fragments());
-//			System.out.println("Field type:"+v.getType());
+
+	public void preVisit(ASTNode node) {
+		String[] temp = node.getClass().toString().replaceAll("\\s*", "").split("\\.");
+
+		String thisnode;
+		try {
+			thisnode = addNode(node);
+			String parentnode = getParName(node);
+			if (parentnode != null)
+				con.AddRelationship(parentnode, thisnode);
+		} catch (SQLException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
 		}
-		
-		for (Iterator iter = node.fragments().iterator(); iter.hasNext();) {
-			VariableDeclarationFragment fragment = (VariableDeclarationFragment) iter.next();
-
-			IVariableBinding binding = fragment.resolveBinding();
-			
-//			System.out.println("---");
-//			System.out.println("Key: "+binding.getKey());
-//			System.out.println("ConstantValue: "+binding.getConstantValue());
-//			System.out.println("VariableDeclaration: "+binding.getVariableDeclaration());
-//			System.out.println("Name: "+binding.getName());
-//			System.out.println("Type: "+binding.getType());
-//			System.out.println(binding.toString());
-//			System.out.println("---");
-//			VariableBindingManager manager = new VariableBindingManager(fragment);
-//			localVariableManagers.put(binding, manager);
-		}
-		return true;
+//		System.out.println(node.getClass());
 	}
 
-	@Override
-	public boolean visit(MethodDeclaration node) {
-//		node.
-		System.out.println("Method:\t" + node.getName());
-			//get method parameters
-		System.out.println("Mparent : "+node.getParent());
-		System.out.println("method parameters:"+node.parameters());
-		System.out.println("node name property: "+ node.getProperty("temp"));
-		
-//		System.out.println("aa: "+ node.getStructuralProperty());
-			//get method return type
-		System.out.println("method return type:"+node.getReturnType2());
-		Block methodBody = node.getBody();
-//		System.out.println("method body: "+methodBody);
-//        List<Statement> statementList = methodBody.statements();
-//        if(methodBody.statements()!=null) {
-//		System.out.println(methodBody.statements());}
-//        System.out.println(statementList.toString());
 
-//        statementList.get(0);
-
-//        ExpressionStatement ifs = (ExpressionStatement) node.getBody().statements().get(1);
-//        Assignment expression = (Assignment) ifs.getExpression();
-//        Expression exp = expression.getRightHandSide();
-//        List<Statement> statementList = methodBody.statements();
-
-//        System.out.println(statementList.toString());
-		
-		return true;
+	// 这里开始是想previsit调用的方法
+	public String addNode(ASTNode node) throws SQLException {
+		String[] temp = node.getClass().toString().replaceAll("\\s*", "").split("\\.");
+		String nodename = temp[temp.length - 1] + String.valueOf(node.getStartPosition())
+				+ String.valueOf(node.getLength());
+		ArrayList<String> proname = new ArrayList<String>();
+		ArrayList<String> proval = new ArrayList<String>();
+		proname.add("Name");
+		proval.add(nodename);
+		con.AddNode(nodename, temp[temp.length - 1], proname, proval);
+		return nodename;
 	}
- 
-	@Override
-	public boolean visit(TypeDeclaration node) {
-		
-		System.out.println("Class:\t" + node.getName());
-		return true;
-	}
-	
-	@Override
-	public boolean visit(CompilationUnit node) {
-		System.out.println("CompilationUnit:\t "+node.getAST());
-		return true;
+
+	public String getParName(ASTNode node) {
+		ASTNode par = node.getParent();
+		if (par == null)
+			return null;
+		String[] temp = par.getClass().toString().replaceAll("\\s*", "").split("\\.");
+		String parname = temp[temp.length - 1] + String.valueOf(par.getStartPosition())
+				+ String.valueOf(par.getLength());
+		return parname;
 	}
 }
