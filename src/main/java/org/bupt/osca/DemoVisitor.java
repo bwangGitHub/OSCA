@@ -1,5 +1,6 @@
 package org.bupt.osca;
 
+import java.awt.Dimension;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -22,6 +23,7 @@ import org.eclipse.jdt.core.dom.FieldDeclaration;
 import org.eclipse.jdt.core.dom.IVariableBinding;
 import org.eclipse.jdt.core.dom.InfixExpression;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
+import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.Modifier;
 import org.eclipse.jdt.core.dom.NumberLiteral;
 import org.eclipse.jdt.core.dom.PackageDeclaration;
@@ -42,6 +44,7 @@ import org.eclipse.jdt.core.dom.WhileStatement;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.ContinueStatement;
 import org.eclipse.jdt.core.dom.CreationReference;
+import org.eclipse.jdt.core.dom.Expression;
 
 public class DemoVisitor extends ASTVisitor {
 	private Neo4jCreate con;
@@ -133,20 +136,23 @@ public class DemoVisitor extends ASTVisitor {
 			nodename = addExpressionStatement((ExpressionStatement) node);
 			break;
 		case "WhileStatement":
-			nodename = addWhileStatement((WhileStatement)node);
+			nodename = addWhileStatement((WhileStatement) node);
 			break;
 		case "InfixExpression":
 			nodename = addInfixExpression((InfixExpression) node);
 			break;
 		case "Assignment":
-			nodename = addAssignment((Assignment)node);
+			nodename = addAssignment((Assignment) node);
 			break;
 		case "ContinueStatement":
-			nodename = addContinueStatement((ContinueStatement)node);
+			nodename = addContinueStatement((ContinueStatement) node);
 			break;
-		//写到这里了！！
+		// 写到这里了！！
+		case "MethodInvocation":
+			nodename = addMethodInvocation((MethodInvocation) node);
+			break;
 		case "ReturnStatement":
-			nodename = addReturnStatement((ReturnStatement)node);
+			nodename = addReturnStatement((ReturnStatement) node);
 			break;
 		default:
 			nodename = addOtherNode(node);
@@ -244,7 +250,7 @@ public class DemoVisitor extends ASTVisitor {
 		proval.add(nodename);
 		proname.add("Name");
 		proval.add(node.getName().toString());
-		//null pointer
+		// null pointer
 //		proname.add("Initializer");
 //		proval.add(node.getInitializer().toString());
 //		proname.add("Type");
@@ -288,13 +294,20 @@ public class DemoVisitor extends ASTVisitor {
 		proval.add(nodename);
 		proname.add("Name");
 		proval.add(node.getName().toString());
-		//空指针处理的问题
-//		proname.add("getReceiverQualifier");
-//		proval.add(node.getReceiverQualifier().toString());
-//		proname.add("getReceiverType");
-//		proval.add(node.getReceiverType().toString());
-//		proname.add("getgetReturnType2");
-//		proval.add(node.getReturnType2().toString());
+		// 空指针处理的问题
+		if (node.getReceiverQualifier() != null) {
+			proname.add("getReceiverQualifier");
+			proval.add(node.getReceiverQualifier().toString());
+		}
+		if (node.getReceiverType() != null) {
+			proname.add("getReceiverType");
+			proval.add(node.getReceiverType().toString());
+		}
+		if (node.getReturnType2() != null) {
+			proname.add("getgetReturnType2");
+			proval.add(node.getReturnType2().toString());
+		}
+
 		con.AddNode(nodename, label, proname, proval);
 		return nodename;
 
@@ -322,9 +335,10 @@ public class DemoVisitor extends ASTVisitor {
 		proval.add(nodename);
 		proname.add("Name");
 		proval.add(node.getName().toString());
-		//nullpointer
-//		proname.add("Initializer");
-//		proval.add(node.getInitializer().toString());
+		if (node.getInitializer() != null) {
+			proname.add("Initializer");
+			proval.add(node.getInitializer().toString());
+		}
 		con.AddNode(nodename, label, proname, proval);
 		return nodename;
 	}
@@ -389,13 +403,13 @@ public class DemoVisitor extends ASTVisitor {
 		proname.add("NodeName");
 		proval.add(nodename);
 		proname.add("Expression");
+		
 		proval.add(node.getExpression().toString());
 		con.AddNode(nodename, label, proname, proval);
 		return nodename;
 	}
 
-	public String addWhileStatement(WhileStatement node) throws SQLException
-	{
+	public String addWhileStatement(WhileStatement node) throws SQLException {
 		String label = "WhileStatement";
 		String nodename = label + String.valueOf(node.getStartPosition()) + String.valueOf(node.getLength());
 		ArrayList<String> proname = new ArrayList<String>();
@@ -409,16 +423,15 @@ public class DemoVisitor extends ASTVisitor {
 		con.AddNode(nodename, label, proname, proval);
 		return nodename;
 	}
-	
-	public String addInfixExpression(InfixExpression node ) throws SQLException
-	{
+
+	public String addInfixExpression(InfixExpression node) throws SQLException {
 		String label = "InfixExpression";
 		String nodename = label + String.valueOf(node.getStartPosition()) + String.valueOf(node.getLength());
 		ArrayList<String> proname = new ArrayList<String>();
 		ArrayList<String> proval = new ArrayList<String>();
 		proname.add("NodeName");
 		proval.add(nodename);
-		
+
 		proname.add("LeftOperand");
 		proval.add(node.getLeftOperand().toString());
 		proname.add("Operator");
@@ -428,21 +441,19 @@ public class DemoVisitor extends ASTVisitor {
 		con.AddNode(nodename, label, proname, proval);
 		return nodename;
 	}
-	
-	public String addContinueStatement(ContinueStatement node)
-	{
+
+	public String addContinueStatement(ContinueStatement node) {
 		String label = "ContinueStatement";
 		String nodename = label + String.valueOf(node.getStartPosition()) + String.valueOf(node.getLength());
 		ArrayList<String> proname = new ArrayList<String>();
 		ArrayList<String> proval = new ArrayList<String>();
 		proname.add("NodeName");
 		proval.add(nodename);
-		
+
 		return nodename;
 	}
-	
-	public String addReturnStatement(ReturnStatement node)
-	{
+
+	public String addReturnStatement(ReturnStatement node) {
 		String label = "ReturnStatement";
 		String nodename = label + String.valueOf(node.getStartPosition()) + String.valueOf(node.getLength());
 		ArrayList<String> proname = new ArrayList<String>();
@@ -450,12 +461,12 @@ public class DemoVisitor extends ASTVisitor {
 		proname.add("NodeName");
 		proval.add(nodename);
 		proname.add("Expression");
-		proval.add(node.getExpression().toString());
+		if (node.getExpression() != null)
+			proval.add(node.getExpression().toString());
 		return nodename;
 	}
-	
-	public String addAssignment(Assignment node) throws SQLException
-	{
+
+	public String addAssignment(Assignment node) throws SQLException {
 		String label = "Assignment";
 		String nodename = label + String.valueOf(node.getStartPosition()) + String.valueOf(node.getLength());
 		ArrayList<String> proname = new ArrayList<String>();
@@ -471,8 +482,26 @@ public class DemoVisitor extends ASTVisitor {
 		con.AddNode(nodename, label, proname, proval);
 		return nodename;
 	}
-	
-	
+
+	public String addMethodInvocation(MethodInvocation node) throws SQLException {
+		String[] temp = node.getClass().toString().replaceAll("\\s*", "").split("\\.");
+		String nodename = temp[temp.length - 1] + String.valueOf(node.getStartPosition())
+				+ String.valueOf(node.getLength());
+
+		ArrayList<String> proname = new ArrayList<String>();
+		ArrayList<String> proval = new ArrayList<String>();
+		proname.add("NodeName");
+		proval.add(nodename);
+		proname.add("Name");
+		proval.add(node.getName().toString());
+		if (node.getExpression() != null) {
+			proname.add("Expression");
+			proval.add(node.getExpression().toString());
+		}
+		con.AddNode(nodename, temp[temp.length - 1], proname, proval);
+		return nodename;
+	}
+
 	public String addOtherNode(ASTNode node) throws SQLException {
 		String[] temp = node.getClass().toString().replaceAll("\\s*", "").split("\\.");
 		String nodename = temp[temp.length - 1] + String.valueOf(node.getStartPosition())
@@ -480,10 +509,27 @@ public class DemoVisitor extends ASTVisitor {
 
 		ArrayList<String> proname = new ArrayList<String>();
 		ArrayList<String> proval = new ArrayList<String>();
-		proname.add("Name");
+		proname.add("NodeName");
 		proval.add(nodename);
 		con.AddNode(nodename, temp[temp.length - 1], proname, proval);
 		return nodename;
+	}
+	
+	public String[] fExpression(Expression ex)
+	{
+		String temp = ex.toString();
+		
+		if(temp.contains("="))
+		{
+			String exp[]=new String[2];
+			int j = temp.indexOf("=");
+			exp[0] = new String(temp.substring(0,j));
+			exp[1] = new String(temp.substring(j+1,temp.length()));
+			return exp;
+		}
+		else 
+			return null;
+			
 	}
 
 }

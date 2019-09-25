@@ -1,7 +1,12 @@
 package org.bupt.osca;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
@@ -56,10 +61,12 @@ public class Neo4jCreate {
 		relaquery.append(query.toString());
 	}
 	
-	public void executeQuery() throws SQLException
+	public void executeQuery() throws SQLException, IOException
 	{
 		System.out.println(nodequery.toString());
-		System.out.println(relaquery.toString());
+		OutputStreamWriter out = new OutputStreamWriter(new FileOutputStream(".\\output.txt"));
+		out.write(nodequery.toString());
+//		System.out.println(relaquery.toString());
 		//neo4j data push
 		Statement stmt = connect.createStatement();
 		System.out.println(stmt.execute(nodequery.toString()+relaquery.toString()));
@@ -70,5 +77,26 @@ public class Neo4jCreate {
 		StringBuilder query = new StringBuilder();
 		query.append("CREATE ("+NodeName+":"+label+" {name: \'"+NodeName+"\'})\n");
 		nodequery.append(query.toString());
+	}
+	
+	//ÕÒµ½Ó²±àÂëº¯Êý
+	public void findHrdCd(String lable,String var,String regrix) throws SQLException
+	{
+		Statement stmt = connect.createStatement();
+		StringBuilder query = new StringBuilder();
+		query.append("MATCH (temp:");
+		query.append(lable);
+		query.append(") WHERE temp.");
+		query.append(var);
+		query.append("=");
+		query.append(regrix);
+		query.append(" RETURN temp.");
+		query.append(var);
+		ResultSet rs = stmt.executeQuery(query.toString());
+		System.out.println(query.toString());
+		while(rs.next())  
+        {  
+			System.out.println(rs.getString("temp."+var));
+        }  
 	}
 }
